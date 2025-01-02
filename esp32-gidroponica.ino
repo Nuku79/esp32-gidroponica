@@ -11,9 +11,12 @@ FastBot2 bot;
 #include <iarduino_I2C_pH.h>                      //   Подключаем библиотеку для работы с pH-метром I2C-flash.
 iarduino_I2C_pH sensor(0x09); 
 
-#include <Thread.h>  // подключение библиотеки ArduinoThread
-Thread pHThread = Thread(); // создаём поток управления pH сенсором
-Thread GetTimeThread = Thread(); // создаём поток получения времени
+//#include <Thread.h>  // подключение библиотеки ArduinoThread
+//Thread pHThread = Thread(); // создаём поток управления pH сенсором
+//Thread GetTimeThread = Thread(); // создаём поток получения времени
+
+#include <GyverOS.h>
+GyverOS<2> OS;	// указать макс. количество задач
 
 //WiFiServer TelnetServer(23);
 //WiFiClient Telnet;
@@ -145,11 +148,13 @@ void setup() {
 
     sensor.begin(&Wire);          // Инициируем работу с pH-метром I2C-flash, указав ссылку на объект для работы с шиной I2C на которой находится модуль (по умолчанию &Wire).
   
-    pHThread.onRun(pHRead);  // назначаем потоку задачу
-    pHThread.setInterval(pHProbeInterval * 60 * 1000); // задаём интервал срабатывания - минимум минута, если pHProbeInterval = 1
+    //pHThread.onRun(pHRead);  // назначаем потоку задачу
+    //pHThread.setInterval(pHProbeInterval * 60 * 1000); // задаём интервал срабатывания - минимум минута, если pHProbeInterval = 1
 
-    GetTimeThread.onRun(GetTime);  // назначаем потоку задачу
-    GetTimeThread.setInterval(GetTimeInterval * 60 * 1000); // задаём интервал обновления втутренних часов МК
+    //GetTimeThread.onRun(GetTime);  // назначаем потоку задачу
+    //GetTimeThread.setInterval(GetTimeInterval * 60 * 1000); // задаём интервал обновления втутренних часов МК
+    OS.attach(0, pHRead, pHProbeInterval * 60 * 1000); // задаём интервал срабатывания - минимум минута, если pHProbeInterval = 1
+    OS.attach(1, GetTime, GetTimeInterval * 60 * 1000); // задаём интервал обновления втутренних часов МК
 
     //TelnetServer.begin();
     //TelnetServer.setNoDelay(true);
@@ -178,6 +183,7 @@ void loop() {
     uint32_t ms = millis();
 
     // тикаем в loop!
+    OS.tick();
     bot.tick();
 
     if (bot.canReboot()) ESP.restart();
@@ -205,12 +211,12 @@ void loop() {
     // }
 
     // Проверим, пришло ли время прочитать pH:
-    if (pHThread.shouldRun())
-      pHThread.run(); // запускаем поток
+    //if (pHThread.shouldRun())
+    //  pHThread.run(); // запускаем поток
 
     // Проверим, пришло ли время обновить внутреннее время МК
-    if (GetTimeThread.shouldRun())
-      GetTimeThread.run(); // запускаем поток
+    //if (GetTimeThread.shouldRun())
+    //  GetTimeThread.run(); // запускаем поток
 
     // // look for Client connect trial
     // if (telnetServer.hasClient()) {
