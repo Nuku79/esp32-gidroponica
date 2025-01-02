@@ -15,7 +15,7 @@ iarduino_I2C_pH sensor(0x09);
 Thread pHThread = Thread(); // создаём поток управления pH сенсором
 Thread GetTimeThread = Thread(); // создаём поток получения времени
 
-//WiFiServer TelnetServer(23);
+WiFiServer TelnetServer(23);
 //WiFiClient Telnet;
 
 int ledState = LOW;  // ledState used to set the LED
